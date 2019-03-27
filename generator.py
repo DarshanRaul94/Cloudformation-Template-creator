@@ -1,61 +1,76 @@
 import json
 
-def lambda_handler(event, context):
-    # TODO implement
-    template='''{
-    "AWSTemplateFormatVersion" : "2010-09-09",
-  
-    "Description" : "AWS CloudFormation Template Description",
-  
-   
-  
-    "Resources" : {
-        
+template='''{
+"AWSTemplateFormatVersion" : "2010-09-09",
+
+"Description" : "AWS CloudFormation Template Description",
+
+
+
+"Resources" : {
+    
+}
+}'''
+
+
+s3_bucket_type="AWS::S3::Bucket"
+iam_user_type="AWS::IAM::User"
+iam_group_type="AWS::IAM::Group"
+
+
+stack=json.loads(template)
+resources=stack["Resources"]
+
+bodytext='''
+[
+  {
+  "resource_name":"Bucket01",
+  "resource_type":"S3Bucket",    
+  "Properties" : {
+    "AccessControl" : "PublicRead",
+    "BucketName" : "dfdfdfdfdf"
+              
     }
-    }'''
-
-
-    s3_bucket_type="AWS::S3::Bucket"
-    iam_user_type="AWS::IAM::User"
-    iam_group_type="AWS::IAM::Group"
-
-
-    stack=json.loads(template)
-
-
-    
-    body=json.loads(str(event["body"]))
-    properties=body["Properties"]
-    
-    resources=stack["Resources"] 
-    s3bucket={}
-    s3bucket.update({"Type" : s3_bucket_type,"Properties":{}})
-    
-    for property in body["Properties"]:
-        s3bucket["Properties"].update(
-         {property:body["Properties"][property]}## unsual jugaad but need to use it as I dont know the amount of properties that may come
-        )
-    #####for local testing
-    """bodytext='''{
-    "Properties" : {
-       "AccessControl" : "PublicRead",
-       "BucketName" : "dfdfdfdfdf",
-       "hello":"adfdfdf"           
+  },
+  {
+  "resource_name":"User01",   
+  "resource_type":"IAMUser",    
+  "Properties" : {
+    "UserName": "raghuram"          
     }
-    }'''
-
-    body=json.loads(bodytext)"""
-
-    
+  }]
 
 
-    resources.update({"HelloWorld":s3bucket})
+'''
+
+body=json.loads(bodytext)
 
 
-    #print(stack)
-    j = json.dumps(stack, indent=4)
-    print(j)
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')
-    }
+resourcetypes = { 
+    "S3Bucket": s3_bucket_type, 
+    "IAMUser": iam_user_type,
+    "IAMGroup": iam_group_type
+} 
+
+def gettype(res_type):
+  return resourcetypes.get(res_type,"nothing") 
+
+for resource in body:
+  resource_name=resource["resource_name"]
+  print(resource_name)
+
+  resource_type=gettype(resource["resource_type"])
+  print(resource_type)
+  subdict={"Properties":{}}
+  subdict["Type"]=resource_type
+  for property in resource["Properties"]:
+    subdict["Properties"].update(
+      {property:resource["Properties"][property]}## unsual jugaad but need to use it as I dont know the amount of properties that may come
+      )  
+    #print(property)
+    #print(resource["Properties"][property])## unsual jugaad but need to use it as I dont know the amount of properties that may come
+  print(subdict)
+  resources.update({resource_name:subdict})
+  
+j = json.dumps(stack, indent=4)
+print(j)
