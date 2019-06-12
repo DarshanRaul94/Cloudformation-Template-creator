@@ -1,6 +1,15 @@
+
+### importing the required python packages
 import json
 import boto3
+
+
 def lambda_handler(event, context):
+  '''
+  This function will be used to create a CFN template based on the input recieved
+  '''
+  
+  ######## BLANK template to be used to fill data into 
   template='''{
     "AWSTemplateFormatVersion" : "2010-09-09",
 
@@ -12,16 +21,19 @@ def lambda_handler(event, context):
     
   }
   }'''
-
-  cfn=boto3.client('cloudformation')   
+  
+  cfn=boto3.client('cloudformation')    ## initialized the Cloudformation boto object
+  
+  ### storing the CFN resource types in variables
+  
   s3_bucket_type="AWS::S3::Bucket"
   iam_user_type="AWS::IAM::User"
   iam_group_type="AWS::IAM::Group"
 
-
+  ### load the template defined above as json 
   stack=json.loads(template)
   resources=stack["Resources"]
-
+  ## load the body of the request in vatiable body
   body=json.loads(str(event["body"]))
 
 
