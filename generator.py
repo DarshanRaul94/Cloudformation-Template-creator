@@ -36,7 +36,7 @@ def lambda_handler(event, context):
   ## load the body of the request in vatiable body
   body=json.loads(str(event["body"]))
 
-
+######## create dictonary of resource types for mapping later
   resourcetypes = { 
     "S3Bucket": s3_bucket_type, 
     "IAMUser": iam_user_type,
@@ -44,15 +44,18 @@ def lambda_handler(event, context):
   } 
 
   def gettype(res_type):
+    '''
+    This function is used just to map the resource types.
+    '''
     return resourcetypes.get(res_type,"nothing") 
 
   for resource in body:
-    resource_name=resource["resource_name"]
+    resource_name=resource["resource_name"]## get the resource name
     print(resource_name)
 
-    resource_type=gettype(resource["resource_type"])
+    resource_type=gettype(resource["resource_type"]) ## get the resource type string using the get type function 
     print(resource_type)
-    subdict={"Properties":{}}
+    subdict={"Properties":{}} ### define an empty dict
     subdict["Type"]=resource_type
     for property in resource["Properties"]:
       subdict["Properties"].update(
@@ -63,8 +66,10 @@ def lambda_handler(event, context):
     print(subdict)
     resources.update({resource_name:subdict})
   
-  j = json.dumps(stack, indent=4)
+  j = json.dumps(stack, indent=4) ############ load everything in the json object which will be used as template body for stack deploy
 
+  
+  ## code for deploying the stack
   cfn.create_stack(
     StackName="test",
     TemplateBody=str(j),
